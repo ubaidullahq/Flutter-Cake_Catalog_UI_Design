@@ -17,7 +17,54 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
+  AnimationController controller;
+  Animation carousalAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    controller =
+        new AnimationController(duration: Duration(seconds: 18), vsync: this);
+    carousalAnimation =
+        IntTween(begin: 0, end: photos.length - 1).animate(controller)
+          ..addListener(() {
+            setState(() {
+              photoIndex = carousalAnimation.value;
+            });
+          });
+    controller.repeat();
+
+    @override
+    void dispose() {
+      super.dispose();
+      controller.dispose();
+    }
+  }
+
+  int photoIndex = 0;
+  List<String> photos = [
+    'assets/img1.webp',
+    'assets/img2.webp',
+    'assets/img3.webp',
+    'assets/img4.webp',
+    'assets/img5.webp',
+    'assets/img6.webp',
+  ];
+
+  void _previousImage() {
+    setState(() {
+      photoIndex = photoIndex > 0 ? photoIndex - 1 : 0;
+    });
+  }
+
+  void _nextImage() {
+    setState(() {
+      photoIndex = photoIndex < photos.length - 1 ? photoIndex + 1 : photoIndex;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,7 +78,10 @@ class _HomePageState extends State<HomePage> {
           ),
           onPressed: () {},
         ),
-        title: Text('Fine quality'),
+        title: Text(
+          'Fine quality',
+          style: TextStyle(color: Colors.black),
+        ),
         centerTitle: true,
         actions: [
           IconButton(
@@ -62,9 +112,9 @@ class _HomePageState extends State<HomePage> {
                               width: MediaQuery.of(context).size.width -
                                   MediaQuery.of(context).size.width / 3,
                               decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10.0),
+                                  borderRadius: BorderRadius.circular(5.0),
                                   image: DecorationImage(
-                                      image: AssetImage('assets/img1.webp'),
+                                      image: AssetImage(photos[photoIndex]),
                                       fit: BoxFit.cover)),
                             ),
                             Positioned(
@@ -89,6 +139,18 @@ class _HomePageState extends State<HomePage> {
                                       fontFamily: 'Quicksand',
                                       fontSize: 20.0,
                                     ),
+                                  )
+                                ],
+                              ),
+                            ),
+                            Positioned(
+                              top: 210.0,
+                              left: 95.0,
+                              child: Row(
+                                children: [
+                                  SelectedPhoto(
+                                    numberOfDots: photos.length,
+                                    photoIndex: photoIndex,
                                   )
                                 ],
                               ),
@@ -195,41 +257,40 @@ class _HomePageState extends State<HomePage> {
               SizedBox(
                 height: 10.0,
               ),
-              Padding(
-                padding: const EdgeInsets.only(left: 17.0),
-                child: Text(
-                  'Commodity',
-                  style: TextStyle(
-                    fontFamily: 'Quicksand',
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.left,
-                ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 17.0),
+            child: Text(
+              'Commodity',
+              style: TextStyle(
+                fontFamily: 'Quicksand',
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
               ),
-              SizedBox(
-                height: 15.0,
-              ),
-              GridView.count(
-                crossAxisCount: 2,
-                primary: false,
-                crossAxisSpacing: 10.0,
-                childAspectRatio: 0.85,
-                mainAxisSpacing: 10.0,
-                shrinkWrap: true,
-                children: [
-                  _buildFoodCard(
-                      'Respberry', 'Italy', 'assets/img2.webp', 64, 22, 1),
-                  _buildFoodCard(
-                      'Mousse', 'China', 'assets/img3.webp', 64, 22, 1),
-                  _buildFoodCard(
-                      'Respberry', 'Italy', 'assets/img4.webp', 64, 22, 1),
-                  _buildFoodCard(
-                      'Respberry', 'Italy', 'assets/img5.webp', 64, 22, 1),
-                  _buildFoodCard(
-                      'Respberry', 'Italy', 'assets/img6.webp', 64, 22, 1),
-                ],
-              )
+              textAlign: TextAlign.left,
+            ),
+          ),
+          SizedBox(
+            height: 15.0,
+          ),
+          GridView.count(
+            crossAxisCount: 2,
+            primary: false,
+            crossAxisSpacing: 10.0,
+            childAspectRatio: 0.85,
+            mainAxisSpacing: 10.0,
+            shrinkWrap: true,
+            children: [
+              _buildFoodCard(
+                  'Respberry', 'Italy', 'assets/img2.webp', 64, 22, 1),
+              _buildFoodCard('Mousse', 'China', 'assets/img3.webp', 64, 22, 2),
+              _buildFoodCard(
+                  'Respberry', 'Italy', 'assets/img4.webp', 64, 22, 3),
+              _buildFoodCard(
+                  'Respberry', 'Italy', 'assets/img5.webp', 64, 22, 4),
+              _buildFoodCard(
+                  'Respberry', 'Italy', 'assets/img6.webp', 64, 22, 5),
             ],
           )
         ],
@@ -347,6 +408,69 @@ class _HomePageState extends State<HomePage> {
             )
           ],
         ),
+      ),
+    );
+  }
+}
+
+class SelectedPhoto extends StatelessWidget {
+  final int numberOfDots;
+  final int photoIndex;
+
+  SelectedPhoto({this.numberOfDots, this.photoIndex});
+
+  Widget _inactivePhoto() {
+    return Container(
+      child: Padding(
+        padding: EdgeInsets.only(left: 3.0, right: 3.0),
+        child: Container(
+          height: 8.0,
+          width: 8.0,
+          decoration: BoxDecoration(
+            color: Colors.grey,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _activePhoto() {
+    return Container(
+      child: Padding(
+        padding: EdgeInsets.only(left: 3.0, right: 3.0),
+        child: Container(
+          height: 10.0,
+          width: 10.0,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(5.0),
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey,
+                  spreadRadius: 0.0,
+                  blurRadius: 2.0,
+                )
+              ]),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildDots() {
+    List<Widget> dots = [];
+    for (int i = 0; i < numberOfDots; ++i) {
+      dots.add(i == photoIndex ? _activePhoto() : _inactivePhoto());
+    }
+    return dots;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: _buildDots(),
       ),
     );
   }
